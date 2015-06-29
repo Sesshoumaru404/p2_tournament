@@ -111,5 +111,5 @@ def swissPairings():
     conn = connect()
     c = conn.cursor()
     c.execute("SELECT * from standings ORDER BY wins DESC ;")
-    posts = c.fetchall()
+    standings = c.fetchall()
     conn.close()
