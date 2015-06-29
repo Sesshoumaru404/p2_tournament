@@ -24,7 +24,7 @@ def deletePlayers():
     """Remove all the player records from the database."""
     conn = connect()
     c = conn.cursor()
-    c.execute("TRUNCATE players;")
+    c.execute("TRUNCATE players, standings;")
     conn.commit()
     conn.close()
 
@@ -68,6 +68,13 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
+    conn = connect()
+    c = conn.cursor()
+    c.execute("SELECT * FROM standings;")
+    # print c.rowcount
+    posts = c.fetchall()
+    conn.close()
+    return posts
 
 
 def reportMatch(winner, loser):
@@ -77,7 +84,14 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
+    conn = connect()
+    c = conn.cursor()
+    c.execute("UPDATE standings SET matches = matches + 1 WHERE standings.id = (%s) OR standings.id = (%s);", (winner,loser,))
+    c.execute("UPDATE standings SET wins = wins + 1 WHERE standings.id = (%s);", (winner,))
+    conn.commit()
+    conn.close()
 
+# UPDATE standings SET wins = wins + 1 WHERE standings.id = (%s);
 
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
@@ -94,3 +108,8 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    conn = connect()
+    c = conn.cursor()
+    c.execute("SELECT * from standings ORDER BY wins DESC ;")
+    posts = c.fetchall()
+    conn.close()

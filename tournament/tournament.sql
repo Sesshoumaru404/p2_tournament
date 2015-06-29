@@ -23,13 +23,30 @@ CREATE TABLE matches (
     match_id serial PRIMARY KEY
 );
 
+-- Setup table for all standings
+CREATE TABLE standings (
+    id serial REFERENCES players (id),
+    name text,
+    wins int DEFAULT 0,
+    matches int DEFAULT 0
+);
 
-  conn = connect()
-  c = conn.cursor()
-  c.execute("SELECT * FROM players;")
-  # print c.rowcount
-  posts = c.rowcount
-  conn.close()
-  return posts
+CREATE OR REPLACE FUNCTION process_standings() RETURNS TRIGGER AS $standings$
+    BEGIN
+        --
+        -- Create a row in emp_audit to reflect the operation performed on emp,
+        -- make use of the special variable TG_OP to work out the operation.
+        --
+        IF (TG_OP = 'INSERT') THEN
+            INSERT INTO standings SELECT NEW.id, NEW.name;
+            RETURN NEW;
+        END IF;
+        RETURN NULL; -- result is ignored since this is an AFTER trigger
+    END;
+$standings$ LANGUAGE plpgsql;
 
-SELECT * from players;
+CREATE TRIGGER standings
+AFTER INSERT ON players
+    FOR EACH ROW EXECUTE PROCEDURE process_standings();
+
+SELECT * from standings;
