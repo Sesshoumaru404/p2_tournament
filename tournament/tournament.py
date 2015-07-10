@@ -15,7 +15,8 @@ def deleteMatches():
     """Remove all the match records from the database."""
     conn = connect()
     c = conn.cursor()
-    c.execute("TRUNCATE matches;")
+    c.execute("DELETE FROM matches;")
+    print 'Remove all the match records'
     conn.commit()
     conn.close()
 
@@ -24,7 +25,8 @@ def deletePlayers():
     """Remove all the player records from the database."""
     conn = connect()
     c = conn.cursor()
-    c.execute("TRUNCATE players, standings;")
+    c.execute("DELETE FROM players;")
+    print 'Remove all the players records'
     conn.commit()
     conn.close()
 
@@ -35,6 +37,7 @@ def countPlayers():
     c.execute("SELECT * FROM players;")
     # print c.rowcount
     posts = c.rowcount
+    print 'Total player count %s' % posts
     conn.close()
     return posts
 
@@ -112,4 +115,5 @@ def swissPairings():
     c = conn.cursor()
     c.execute("SELECT * from standings ORDER BY wins DESC ;")
     standings = c.fetchall()
+    print standings
     conn.close()

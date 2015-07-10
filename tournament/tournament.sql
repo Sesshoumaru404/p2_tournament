@@ -8,6 +8,7 @@
 
 -- use in psql to \i tournament.sql of read file
 
+-- DROP DATABASE IF EXISTS p2_tournament;
 CREATE DATABASE p2_tournament;
 
 \c p2_tournament;
@@ -18,35 +19,17 @@ CREATE TABLE players (
 );
 
 -- Setup table for all matches
+-- id1, name1, id2, name2
 CREATE TABLE matches (
-    name text,
-    match_id serial PRIMARY KEY
+    id1 integer REFERENCES players (id),
+    id2 integer REFERENCES players (id),
+    match_id serial PRIMARY KEY,
+		UNIQUE   (id1, id2)
 );
 
--- Setup table for all standings
-CREATE TABLE standings (
-    id serial REFERENCES players (id),
-    name text,
-    wins int DEFAULT 0,
-    matches int DEFAULT 0
+CREATE VIEW standings AS (
+  SELECT ID, NAME
+  FROM PLAYERS
 );
-
-CREATE OR REPLACE FUNCTION process_standings() RETURNS TRIGGER AS $standings$
-    BEGIN
-        --
-        -- Create a row in emp_audit to reflect the operation performed on emp,
-        -- make use of the special variable TG_OP to work out the operation.
-        --
-        IF (TG_OP = 'INSERT') THEN
-            INSERT INTO standings SELECT NEW.id, NEW.name;
-            RETURN NEW;
-        END IF;
-        RETURN NULL; -- result is ignored since this is an AFTER trigger
-    END;
-$standings$ LANGUAGE plpgsql;
-
-CREATE TRIGGER standings
-AFTER INSERT ON players
-    FOR EACH ROW EXECUTE PROCEDURE process_standings();
 
 SELECT * from standings;
