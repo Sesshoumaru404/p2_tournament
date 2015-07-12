@@ -89,8 +89,7 @@ def reportMatch(winner, loser):
     """
     conn = connect()
     c = conn.cursor()
-    c.execute("UPDATE standings SET matches = matches + 1 WHERE standings.id = (%s) OR standings.id = (%s);", (winner,loser,))
-    c.execute("UPDATE standings SET wins = wins + 1 WHERE standings.id = (%s);", (winner,))
+    c.execute("INSERT INTO matches VALUES (%s,%s,%s);", (winner,loser,winner))
     conn.commit()
     conn.close()
 
@@ -111,9 +110,16 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    tuples = ()
     conn = connect()
     c = conn.cursor()
-    c.execute("SELECT * from standings ORDER BY wins DESC ;")
+    c.execute("SELECT * from standings;")
     standings = c.fetchall()
-    print standings
+    for x in range(0, len(standings)):
+        if (x % 2 == 0):
+            printout = standings[x]
+            printout2 = standings[x+1]
+            tuples = tuples + ((printout[0], printout[1],printout2[0], printout2[1],),)
+    # print tuples
+    return tuples
     conn.close()
