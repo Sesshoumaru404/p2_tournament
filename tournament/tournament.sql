@@ -19,6 +19,7 @@ DROP TABLE IF EXISTS matches CASCADE;
 
 CREATE TABLE players (
     name text,
+    tournament text DEFAULT 'no name',
     id serial PRIMARY KEY
 );
 
@@ -60,7 +61,8 @@ CREATE VIEW standings AS (
     players.id,
     players.name,
     win_lose.wins,
-    games.played
+    games.played,
+    players.tournament
   FROM PLAYERS INNER JOIN GAMES USING (id)
   INNER JOIN WIN_LOSE USING (id)
   ORDER BY wins DESC

@@ -31,7 +31,7 @@ def testCount():
 def testRegister():
     deleteMatches()
     deletePlayers()
-    registerPlayer("Chandra Nalaar")
+    registerPlayer("Chandra Nalaar", None)
     c = countPlayers()
     if c != 1:
         raise ValueError(
@@ -42,10 +42,10 @@ def testRegister():
 def testRegisterCountDelete():
     deleteMatches()
     deletePlayers()
-    registerPlayer("Markov Chaney")
-    registerPlayer("Joe Malik")
-    registerPlayer("Mao Tsu-hsi")
-    registerPlayer("Atlanta Hope")
+    registerPlayer("Markov Chaney", null)
+    registerPlayer("Joe Malik", null)
+    registerPlayer("Mao Tsu-hsi", null)
+    registerPlayer("Atlanta Hope", null)
     c = countPlayers()
     if c != 4:
         raise ValueError(
