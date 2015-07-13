@@ -139,6 +139,16 @@ def swissPairings(tournament):
             else:
                 player2 = ("bye", "bye",)
         tuples = tuples + ((player[0], player[1],player2[0], player2[1],),)
-    print len(tuples)
     conn.close()
     return tuples
+
+def clearTournament(tournament):
+    """Use to remove a tournament from database"""
+    delStatemant = "DROP VIEW IF EXISTS %s CASCADE;" %tournament
+    delPlayer = "DELETE FROM players CASCADE WHERE tournament = '%s';" %tournament
+    conn = connect()
+    c = conn.cursor()
+    c.execute(delStatemant)
+    c.execute(delPlayer)
+    conn.commit()
+    conn.close()

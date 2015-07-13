@@ -33,7 +33,6 @@ def simtournament(tournament):
     # pairings = swissPairings(tournament)
     for x in range(0, int(totalRounds)):
         pairings = swissPairings(tournament)
-        print pairings
         for pairs in pairings:
             if pairs[0] == "bye":
                 reportMatch(pairs[2],pairs[0])
@@ -44,6 +43,12 @@ def simtournament(tournament):
             shuffle = [pairs[0], pairs[2]]
             random.shuffle(shuffle)
             reportMatch(shuffle[0], shuffle[1])
-        players = findtournament(tournament)
+        # players = findtournament(tournament)
+    final = findtournament(tournament)
+    winner = final[0]
+    print "The winner is %s winning %s out of %s games " % (winner[1], winner[2],winner[3],)
 
-simtournament('fake')
+simtournament('se')
+
+# simtournament('fake')
+clearTournament('se')

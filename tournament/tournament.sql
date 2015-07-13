@@ -26,8 +26,8 @@ CREATE TABLE players (
 -- Setup table for all matches
 -- id1, name1, id2, name2
 CREATE TABLE matches (
-    id1 integer REFERENCES players (id),
-    id2 integer REFERENCES players (id),
+    id1 integer REFERENCES players (id) ON DELETE CASCADE,
+    id2 integer REFERENCES players (id) ON DELETE CASCADE,
     winner integer REFERENCES players (id),
     match_id serial PRIMARY KEY
 		-- UNIQUE   (id1, id2)
