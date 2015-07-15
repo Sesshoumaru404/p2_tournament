@@ -28,6 +28,7 @@ def deletePlayers(tournament):
     conn.commit()
     conn.close()
 
+
 def countPlayers():
     """Returns the number of players currently registered."""
     conn = connect()
@@ -51,7 +52,8 @@ def registerPlayer(name, tournament):
     """
     conn = connect()
     c = conn.cursor()
-    c.execute("INSERT INTO players (name, tournament) VALUES (%s, %s)" , (name,tournament,))
+    c.execute("INSERT INTO players (name, tournament) VALUES (%s, %s)",
+              (name, tournament,))
     conn.commit()
     conn.close()
 
@@ -59,8 +61,8 @@ def registerPlayer(name, tournament):
 def playerStandings(tournament):
     """Returns a list of the players and their win records, sorted by wins.
 
-    The first entry in the list should be the player in first place, or a player
-    tied for first place if there is currently a tie.
+    The first entry in the list should be the player in first place, or a
+    player tied for first place if there is currently a tie.
 
     Returns:
       A list of tuples, each of which contains (id, name, wins, matches):
@@ -69,16 +71,18 @@ def playerStandings(tournament):
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-    createT = "CREATE VIEW %s AS SELECT * FROM standings WHERE tournament = '%s';" % (tournament, tournament,)
-    test2 = "SELECT * FROM %s;" % tournament
+    x = "CREATE VIEW %s AS SELECT * FROM standings WHERE tournament = '%s';"
+    tableCreate = x % (tournament, tournament,)
+    loadTable = "SELECT * FROM %s;" % tournament
     conn = connect()
     c = conn.cursor()
-    c.execute(createT)
-    c.execute(test2)
-    posts = c.fetchall()
+    c.execute(tableCreate)
+    c.execute(loadTable)
+    table = c.fetchall()
     conn.commit()
     conn.close()
-    return posts
+    return table
+
 
 def findtournament(tournament):
     test2 = "SELECT * FROM %s;" % tournament
@@ -88,6 +92,7 @@ def findtournament(tournament):
     posts = c.fetchall()
     conn.close()
     return posts
+
 
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
@@ -101,12 +106,14 @@ def reportMatch(winner, loser):
         loser = None
     conn = connect()
     c = conn.cursor()
-    c.execute("INSERT INTO matches VALUES (%s,%s,%s);", (winner,loser,winner))
+    c.execute("INSERT INTO matches VALUES (%s,%s,%s);", (winner, loser,
+                                                         winner))
     conn.commit()
     conn.close()
 
 # reportMatch(2, 1)
 # UPDATE standings SET wins = wins + 1 WHERE standings.id = (%s);
+
 
 def swissPairings(tournament):
     """Returns a list of pairs of players for the next round of a match.
@@ -138,17 +145,21 @@ def swissPairings(tournament):
                 player2 = standings[x+1]
             else:
                 player2 = ("bye", "bye",)
-        tuples = tuples + ((player[0], player[1],player2[0], player2[1],),)
+        tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
     conn.close()
     return tuples
 
+
 def clearTournament(tournament):
-    """Use to remove a tournament from database"""
-    delStatemant = "DROP VIEW IF EXISTS %s CASCADE;" %tournament
-    delPlayer = "DELETE FROM players CASCADE WHERE tournament = '%s';" %tournament
+    """
+    Use to remove a tournament  and player in that specfic tournament
+    from database
+    """
+    delTournament = "DROP VIEW IF EXISTS %s CASCADE;" % tournament
+    delP = "DELETE FROM players CASCADE WHERE tournament = '%s';" % tournament
     conn = connect()
     c = conn.cursor()
-    c.execute(delStatemant)
-    c.execute(delPlayer)
+    c.execute(delTournament)
+    c.execute(delP)
     conn.commit()
     conn.close()

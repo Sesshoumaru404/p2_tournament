@@ -6,49 +6,59 @@ import math
 import random
 from tournament import *
 
-contestants = (
-    "Bob",
-    "Billy",
-    "Bill",
-    "tere",
-    "paul"
+contestant = (
+    "Jeff",
+    "John",
+    "Sue",
+    "Tiffany",
+    "Paul"
 )
-
-
-findLog = math.log(len(contestants),2)
+findLog = math.log(len(contestant), 2)
 totalRounds = math.ceil(findLog)
 
-def addContestants(tournament):
-    if tournament is None:
-        raise TypeError("Must name tournament")
+
+def addContestants(contestants, tournament):
+    '''
+    Create table for registered contestants
+    '''
+    if tournament is None or contestants is None:
+        raise TypeError("Must have tournament name and contestants")
     for players in contestants:
         registerPlayer(players, tournament)
     playerStandings(tournament)
-    playerCount = len(contestants)
-    print "Tournament %s with will last %d rounds." % (tournament, totalRounds,)
+    print "Tournament %s with will last %d rounds." % (tournament,
+                                                       totalRounds,)
 
-def simtournament(tournament):
-    addContestants(tournament)
-    players = findtournament(tournament)
-    # pairings = swissPairings(tournament)
+
+def simtournament(contestants, tournament):
+    '''
+    This function is use to simulate a swiss pairing tournament.
+    Take two arguements contestants which is a list of players and
+    tournament which is the name of the tournament
+    '''
+    addContestants(contestants, tournament)
     for x in range(0, int(totalRounds)):
         pairings = swissPairings(tournament)
         for pairs in pairings:
             if pairs[0] == "bye":
-                reportMatch(pairs[2],pairs[0])
+                reportMatch(pairs[2], pairs[0])
                 continue
             if pairs[2] == "bye":
-                reportMatch(pairs[0],pairs[2])
+                reportMatch(pairs[0], pairs[2])
                 continue
             shuffle = [pairs[0], pairs[2]]
             random.shuffle(shuffle)
             reportMatch(shuffle[0], shuffle[1])
         # players = findtournament(tournament)
     final = findtournament(tournament)
-    winner = final[0]
-    print "The winner is %s winning %s out of %s games " % (winner[1], winner[2],winner[3],)
+    print "Final Results"
+    for position, standings in enumerate(final):
+        print "%r is %s with a record of %s - %s" % (position + 1,
+                                                     standings[1],
+                                                     standings[2],
+                                                     standings[3] -
+                                                     standings[2],)
 
-simtournament('se')
+simtournament(contestant, 'se')
 
-# simtournament('fake')
 clearTournament('se')
