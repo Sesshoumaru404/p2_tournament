@@ -8,8 +8,6 @@
 
 -- use in psql to \i tournament.sql of read file
 
--- SELECT pg_terminate_backend(procpid) FROM pg_stat_activity WHERE datname = 'p2_tournament';
--- DROP DATABASE p2_tournament;
 CREATE DATABASE p2_tournament;
 
 \c p2_tournament;
@@ -25,7 +23,7 @@ CREATE TABLE players (
 
 -- Setup table for all matches
 -- id1, name1, id2, name2
-CREATE TABLE matches (
+CREATE TABLE matches ( 
     id1 integer REFERENCES players (id) ON DELETE CASCADE,
     id2 integer REFERENCES players (id) ON DELETE CASCADE,
     winner integer REFERENCES players (id),
@@ -33,26 +31,18 @@ CREATE TABLE matches (
 		-- UNIQUE   (id1, id2)
 );
 
-CREATE VIEW win_lose AS (
-  SELECT
-    players.id,
-    count(matches.winner) as wins
-  FROM PLAYERS LEFT JOIN MATCHES
-  ON players.id = matches.winner
-  -- order by id desc
-  GROUP BY players.id
-  -- HAVING id = matches.winner
-);
-
 CREATE VIEW games AS (
-  SELECT
-    players.id,
-    count(matches.match_id) as played
-  FROM PLAYERS LEFT JOIN MATCHES
-  ON players.id = matches.id1 OR players.id = matches.id2
-  -- order by id desc
-  GROUP BY players.id
-  -- HAVING id = matches.winner
+  SELECT id,
+    count(case when WINNER = id then 1 end) as wins,
+    count(*) as played
+  FROM (
+    SELECT players.id,
+      matches.winner as WINNER,
+      matches.id1,
+      matches.id2
+    FROM PLAYERS LEFT JOIN MATCHES
+    ON players.id = matches.id1 OR players.id = matches.id2
+  ) s GROUP BY id
 );
 
 
@@ -60,25 +50,19 @@ CREATE VIEW standings AS (
   SELECT
     players.id,
     players.name,
-    win_lose.wins,
+    games.wins,
     games.played,
     players.tournament
   FROM PLAYERS INNER JOIN GAMES USING (id)
-  INNER JOIN WIN_LOSE USING (id)
   ORDER BY wins DESC
 );
+-- ALTER VIEW standings ADD COLUMN pionts integer;
 -- DROP VIEW standings;
 INSERT INTO players (name) VALUES ('Paul');
 INSERT INTO players VALUES ('test2');
 INSERT INTO players VALUES ('test3');
--- INSERT INTO matches VALUES (1,3,1);
--- INSERT INTO matches VALUES (3,1,3);
--- INSERT INTO matches VALUES (1,3,1);
--- INSERT INTO matches VALUES (1,2,1);
--- INSERT INTO matches VALUES (2,3,3);
 
 SELECT * from players;
 SELECT * from MATCHES;
-SELECT * from win_lose;
 SELECT * from games;
 SELECT * from standings;

@@ -53,7 +53,7 @@ def simtournament(contestants, tournament):
     final = findtournament(tournament)
     print "Final Results"
     for position, standings in enumerate(final):
-        print "%r is %s with a record of %s - %s" % (position + 1,
+        print "%r. %s with a record of %s - %s" % (position + 1,
                                                      standings[1],
                                                      standings[2],
                                                      standings[3] -
