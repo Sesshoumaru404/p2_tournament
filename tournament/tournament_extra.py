@@ -40,25 +40,24 @@ def simtournament(contestants, tournament):
     for x in range(0, int(totalRounds)):
         pairings = swissPairings(tournament)
         for pairs in pairings:
-            if pairs[0] == "bye":
-                reportMatch(pairs[2], pairs[0])
-                continue
             if pairs[2] == "bye":
-                reportMatch(pairs[0], pairs[2])
+                reportMatch(pairs[0], pairs[2], 'w')
                 continue
-            shuffle = [pairs[0], pairs[2]]
+            shuffle = ['w', 'l', 't']
             random.shuffle(shuffle)
-            reportMatch(shuffle[0], shuffle[1])
+            print shuffle
+            reportMatch(pairs[0], pairs[2], shuffle[0])
         # players = findtournament(tournament)
-    final = findtournament(tournament)
-    print "Final Results"
-    for position, standings in enumerate(final):
-        print "%r. %s with a record of %s - %s" % (position + 1,
-                                                     standings[1],
-                                                     standings[2],
-                                                     standings[3] -
-                                                     standings[2],)
-
+    # final = findtournament(tournament)
+    # print "Final Results"
+    # for position, standings in enumerate(final):
+    #     print "%r. %s with a record of %s - %s" % (position + 1,
+    #                                                  standings[1],
+    #                                                  standings[2],
+    #                                                  standings[3] -
+    #                                                  standings[2],)
+# reportMatch(2, 3, "w")
+# addContestants(contestant, 'test')
 simtournament(contestant, 'se')
 
-clearTournament('se')
+# clearTournament('test')

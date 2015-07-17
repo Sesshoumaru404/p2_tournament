@@ -94,25 +94,67 @@ def findtournament(tournament):
     return posts
 
 
-def reportMatch(winner, loser):
-    """Records the outcome of a single match between two players.
-
-    Args:
-      winner:  the id number of the player who won
-      loser:  the id number of the player who lost
+def checkrematch(id1, id2):
     """
-    # Set opponent to null value if in bye round
-    if loser == "bye":
-        loser = None
+    Use to check if players have already played if other
+    """
+    if id2 == "bye":
+        findMatch = "SELECT * FROM matches where contestant = %s " \
+            " and opponent IS NULL;" % (id1,)
+    else:
+        findMatch = "SELECT * FROM matches where contestant = %s " \
+            " and opponent = %s;" % (id1, id2,)
     conn = connect()
     c = conn.cursor()
-    c.execute("INSERT INTO matches VALUES (%s,%s,%s);", (winner, loser,
-                                                         winner))
+    c.execute(findMatch)
+    match = c.fetchall()
+    conn.close()
+    return len(match) == 1
+
+
+def reportMatch(contestant, opponent, result):
+    """
+    Records the outcome of a single match between two players.
+    Reads as contestant faced opponent and result was
+
+    Args:
+      contestant:  the id number of the player who won
+      opponent:  the id number of the player who lost
+      result: result of the match
+    """
+    if result == 'w':
+        contestantPoints = 3
+        contestantResult = 'w'
+        opponentResult = 'l'
+        opponentPoints = 0
+    if result == 'l':
+        contestantResult = 'l'
+        contestantPoints = 0
+        opponentResult = 'w'
+        opponentPoints = 3
+    if result == 't':
+        contestantResult = 't'
+        contestantPoints = 1
+        opponentResult = 't'
+        opponentPoints = 1
+    conn = connect()
+    c = conn.cursor()
+    # Set opponent to null value if in bye round
+    if opponent == "bye":
+        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);", (contestant,
+                                                                None,
+                                                                result, 1),)
+    else:
+        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);", (contestant,
+                                                                opponent,
+                                                                contestantResult,
+                                                                contestantPoints),)
+        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);", (opponent,
+                                                                contestant,
+                                                                opponentResult,
+                                                                opponentPoints),)
     conn.commit()
     conn.close()
-
-# reportMatch(2, 1)
-# UPDATE standings SET wins = wins + 1 WHERE standings.id = (%s);
 
 
 def swissPairings(tournament):
@@ -136,17 +178,19 @@ def swissPairings(tournament):
     c = conn.cursor()
     c.execute(test2)
     standings = c.fetchall()
+    conn.close()
     for x in range(0, len(standings)):
         if (x % 2 != 0):
             continue
         player = standings[x]
+        print player
         if (x % 2 == 0):
             if (x+1) < len(standings):
                 player2 = standings[x+1]
             else:
                 player2 = ("bye", "bye",)
+        checkrematch(player[0], player2[0])
         tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
-    conn.close()
     return tuples
 
 
