@@ -4,7 +4,7 @@
 #
 
 import psycopg2
-
+import math
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
@@ -158,7 +158,8 @@ def reportMatch(contestant, opponent, result):
 
 
 def swissPairings(tournament):
-    """Returns a list of pairs of players for the next round of a match.
+    """
+    Returns a list of pairs of players for the next round of a match.
 
     Assuming that there are an even number of players registered, each player
     appears exactly once in the pairings.  Each player is paired with another
@@ -173,25 +174,48 @@ def swissPairings(tournament):
         name2: the second player's name
     """
     test2 = "SELECT * FROM %s;" % tournament
+    played = "SELECT opponent FROM matches where contestant = %s ;" % tournament
     tuples = ()
+    playerPool = []
     conn = connect()
     c = conn.cursor()
     c.execute(test2)
-    standings = c.fetchall()
-    conn.close()
-    for x in range(0, len(standings)):
-        if (x % 2 != 0):
-            continue
-        player = standings[x]
-        print player
-        if (x % 2 == 0):
-            if (x+1) < len(standings):
-                player2 = standings[x+1]
-            else:
+    playerPool = c.fetchall()
+    rounds = math.ceil(len(playerPool)/float(2))
+    for x in range(0, int(rounds)):
+        i = 1
+        # Check for bye rematches
+        #
+        # if  not checkrematch(playerPool[lastPlayer][0], "bye"):
+        #     print "played bye"
+        #     player  = playerPool[playerPool[lastPlayer]]
+        #     player2  = playerPool[playerPool[lastPlayer]-1]
+        if checkrematch(playerPool[-1][0], "bye"):
+            player = playerPool[-1]
+            player2 = playerPool[-2]
+            tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
+            del playerPool[-1]
+            del playerPool[-1]
+        else:
+            if len(playerPool) == 1:
+                player  = playerPool[0]
                 player2 = ("bye", "bye",)
-        checkrematch(player[0], player2[0])
-        tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
+                tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
+                break
+            else:
+                player = playerPool[0]
+                del playerPool[0]
+                # print player
+                player2 = playerPool[0]
+                while checkrematch(player[0], player2[0]):
+                    for index, player in enumerate(playerPool):
+                        player2 = playerPool[index + 1]
+                playerPool.remove(player2)
+                tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
+
+    conn.close()
     return tuples
+
 
 
 def clearTournament(tournament):

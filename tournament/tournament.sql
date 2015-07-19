@@ -91,5 +91,5 @@ select *
   from (
     SELECT contestant, count(case when result = 'w' then 1 end) as wins
     FROM matches
-    group by contestant;
-  ) as test
+    group by contestant
+  ) as test;

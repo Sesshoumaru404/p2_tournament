@@ -11,7 +11,11 @@ contestant = (
     "John",
     "Sue",
     "Tiffany",
-    "Paul"
+    "Nina"
+    # "Connor",
+    # "Simone",
+    # "Bryon",
+    # "Paul"
 )
 findLog = math.log(len(contestant), 2)
 totalRounds = math.ceil(findLog)
@@ -45,19 +49,18 @@ def simtournament(contestants, tournament):
                 continue
             shuffle = ['w', 'l', 't']
             random.shuffle(shuffle)
-            print shuffle
             reportMatch(pairs[0], pairs[2], shuffle[0])
         # players = findtournament(tournament)
-    # final = findtournament(tournament)
-    # print "Final Results"
-    # for position, standings in enumerate(final):
-    #     print "%r. %s with a record of %s - %s" % (position + 1,
-    #                                                  standings[1],
-    #                                                  standings[2],
-    #                                                  standings[3] -
-    #                                                  standings[2],)
+    final = findtournament(tournament)
+    print "Final Results"
+    for position, standings in enumerate(final):
+        print "%r. %s with a record of %s - %s" % (position + 1,
+                                                     standings[1],
+                                                     standings[2],
+                                                     standings[3] -
+                                                     standings[2],)
 # reportMatch(2, 3, "w")
 # addContestants(contestant, 'test')
 simtournament(contestant, 'se')
 
-# clearTournament('test')
+clearTournament('test')
