@@ -174,44 +174,68 @@ def swissPairings(tournament):
         name2: the second player's name
     """
     test2 = "SELECT * FROM %s;" % tournament
-    played = "SELECT opponent FROM matches where contestant = %s ;" % tournament
     tuples = ()
-    playerPool = []
     conn = connect()
     c = conn.cursor()
+    # print c
     c.execute(test2)
     playerPool = c.fetchall()
+    # print playerPool
+    editPool = playerPool
     rounds = math.ceil(len(playerPool)/float(2))
     for x in range(0, int(rounds)):
-        i = 1
-        # Check for bye rematches
-        #
-        # if  not checkrematch(playerPool[lastPlayer][0], "bye"):
-        #     print "played bye"
-        #     player  = playerPool[playerPool[lastPlayer]]
-        #     player2  = playerPool[playerPool[lastPlayer]-1]
-        if checkrematch(playerPool[-1][0], "bye"):
-            player = playerPool[-1]
-            player2 = playerPool[-2]
+        editPool = playerPool
+        for  player in playerPool:
+    #         l2 = [1,2,3]
+    #         l3 = [i[0] for i in playerPool if x not in l2]
+    #         # del playerPool[i]
+    #         print playerPool
+            played = "SELECT opponent FROM matches where contestant = %s ;" % player[0]
+            c.execute(played)
+            opponents =  c.fetchall()
+            for o in opponents:
+                for index, test in enumerate(playerPool):
+                    if o[0] == playerPool[index][0]:
+                    #     # editPool.remove(playerPool[index])
+                        print  playerPool[index][0]
+            player = playerPool[0]
+            player2 = editPool[0]
+            # print player, player2
             tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
-            del playerPool[-1]
-            del playerPool[-1]
-        else:
-            if len(playerPool) == 1:
-                player  = playerPool[0]
-                player2 = ("bye", "bye",)
-                tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
-                break
-            else:
-                player = playerPool[0]
-                del playerPool[0]
-                # print player
-                player2 = playerPool[0]
-                while checkrematch(player[0], player2[0]):
-                    for index, player in enumerate(playerPool):
-                        player2 = playerPool[index + 1]
-                playerPool.remove(player2)
-                tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
+            # if  any(map(lambda v: v in opponents, (i[0] for i in playerPool))):
+            #      print playerPool
+            # for test in (i[0] for i in playerPool):
+            #     print test
+        # i = 1
+        # # Check for bye rematches
+        # #
+        # # if  not checkrematch(playerPool[lastPlayer][0], "bye"):
+
+        # #     print "played bye"
+        # #     player  = playerPool[playerPool[lastPlayer]]
+        # #     player2  = playerPool[playerPool[lastPlayer]-1]
+        # if checkrematch(playerPool[-1][0], "bye"):
+        #     player = playerPool[-1]
+        #     player2 = playerPool[-2]
+        #     tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
+        #     del playerPool[-1]
+        #     del playerPool[-1]
+        # else:
+        #     if len(playerPool) == 1:
+        #         player  = playerPool[0]
+        #         player2 = ("bye", "bye",)
+        #         tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
+        #         break
+        #     else:
+        #         player = playerPool[0]
+        #         del playerPool[0]
+        #         # print player
+        #         player2 = playerPool[0]
+        #         while checkrematch(player[0], player2[0]):
+        #             for index, player in enumerate(playerPool):
+        #                 player2 = playerPool[index + 1]
+        #         playerPool.remove(player2)
+        #         tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
 
     conn.close()
     return tuples
