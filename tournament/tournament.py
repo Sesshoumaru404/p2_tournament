@@ -6,6 +6,7 @@
 import psycopg2
 import math
 
+
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
     return psycopg2.connect("dbname=p2_tournament")
@@ -20,11 +21,15 @@ def deleteMatches():
     conn.close()
 
 
-def deletePlayers(tournament):
+def deletePlayers(tournament=None):
     """Remove all the player records from the database."""
+    if tournament is None:
+        erase = "DELETE FROM players;"
+    else:
+        erase = "DELETE FROM players WHERE tournament = %s;", (tournament,)
     conn = connect()
     c = conn.cursor()
-    c.execute("DELETE FROM players WHERE tournament = %s;", (tournament,))
+    c.execute(erase)
     conn.commit()
     conn.close()
 
@@ -41,7 +46,7 @@ def countPlayers():
     return posts
 
 
-def registerPlayer(name, tournament):
+def registerPlayer(name, tournament=None):
     """Adds a player to the tournament database.
 
     The database assigns a unique serial id number for the player.  (This
@@ -58,7 +63,7 @@ def registerPlayer(name, tournament):
     conn.close()
 
 
-def playerStandings(tournament):
+def playerStandings(tournament=None):
     """Returns a list of the players and their win records, sorted by wins.
 
     The first entry in the list should be the player in first place, or a
@@ -71,12 +76,16 @@ def playerStandings(tournament):
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-    x = "CREATE VIEW %s AS SELECT * FROM standings WHERE tournament = '%s';"
-    tableCreate = x % (tournament, tournament,)
-    loadTable = "SELECT * FROM %s;" % tournament
+
     conn = connect()
     c = conn.cursor()
-    c.execute(tableCreate)
+    if tournament is None:
+        loadTable = "SELECT id, name, wins, played FROM standings;"
+    else:
+        x = "CREATE VIEW %s AS SELECT * FROM standings WHERE tournament = '%s';"
+        tableCreate = x % (tournament, tournament,)
+        loadTable = "SELECT * FROM %s;" % tournament
+        c.execute(tableCreate)
     c.execute(loadTable)
     table = c.fetchall()
     conn.commit()
@@ -141,23 +150,18 @@ def reportMatch(contestant, opponent, result):
     c = conn.cursor()
     # Set opponent to null value if in bye round
     if opponent == "bye":
-        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);", (contestant,
-                                                                None,
-                                                                result, 1),)
+        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);",\
+                  (contestant, None, result, 3),)
     else:
-        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);", (contestant,
-                                                                opponent,
-                                                                contestantResult,
-                                                                contestantPoints),)
-        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);", (opponent,
-                                                                contestant,
-                                                                opponentResult,
-                                                                opponentPoints),)
+        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);",\
+                  (contestant, opponent, contestantResult, contestantPoints),)
+        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);",\
+                  (opponent, contestant, opponentResult, opponentPoints),)
     conn.commit()
     conn.close()
 
 
-def swissPairings(tournament):
+def swissPairings(tournament=None):
     """
     Returns a list of pairs of players for the next round of a match.
 
@@ -173,73 +177,36 @@ def swissPairings(tournament):
         id2: the second player's unique id
         name2: the second player's name
     """
-    test2 = "SELECT * FROM %s;" % tournament
+    if tournament is None:
+        test2 = "SELECT * FROM standings;"
+    else:
+        test2 = "SELECT * FROM %s;" % tournament
     tuples = ()
     conn = connect()
     c = conn.cursor()
-    # print c
     c.execute(test2)
     playerPool = c.fetchall()
-    # print playerPool
-    editPool = playerPool
-    rounds = math.ceil(len(playerPool)/float(2))
-    for x in range(0, int(rounds)):
-        editPool = playerPool
-        for  player in playerPool:
-    #         l2 = [1,2,3]
-    #         l3 = [i[0] for i in playerPool if x not in l2]
-    #         # del playerPool[i]
-    #         print playerPool
-            played = "SELECT opponent FROM matches where contestant = %s ;" % player[0]
-            c.execute(played)
-            opponents =  c.fetchall()
-            for o in opponents:
-                for index, test in enumerate(playerPool):
-                    if o[0] == playerPool[index][0]:
-                    #     # editPool.remove(playerPool[index])
-                        print  playerPool[index][0]
-            player = playerPool[0]
-            player2 = editPool[0]
-            # print player, player2
-            tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
-            # if  any(map(lambda v: v in opponents, (i[0] for i in playerPool))):
-            #      print playerPool
-            # for test in (i[0] for i in playerPool):
-            #     print test
-        # i = 1
-        # # Check for bye rematches
-        # #
-        # # if  not checkrematch(playerPool[lastPlayer][0], "bye"):
-
-        # #     print "played bye"
-        # #     player  = playerPool[playerPool[lastPlayer]]
-        # #     player2  = playerPool[playerPool[lastPlayer]-1]
-        # if checkrematch(playerPool[-1][0], "bye"):
-        #     player = playerPool[-1]
-        #     player2 = playerPool[-2]
-        #     tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
-        #     del playerPool[-1]
-        #     del playerPool[-1]
-        # else:
-        #     if len(playerPool) == 1:
-        #         player  = playerPool[0]
-        #         player2 = ("bye", "bye",)
-        #         tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
-        #         break
-        #     else:
-        #         player = playerPool[0]
-        #         del playerPool[0]
-        #         # print player
-        #         player2 = playerPool[0]
-        #         while checkrematch(player[0], player2[0]):
-        #             for index, player in enumerate(playerPool):
-        #                 player2 = playerPool[index + 1]
-        #         playerPool.remove(player2)
-        #         tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
-
+    matches = math.ceil(len(playerPool)/float(2))
+    while len(playerPool) > 0:
+        # checkbye(playerPool)
+        player = playerPool[0]
+        # print [i[0] for i in playerPool]
+        c.execute("SELECT opponent FROM matches where " \
+                  "contestant = %s ;" % player[0])
+        cantPlay = c.fetchall()
+        cantPlay.append((player[0],))
+        canPlay = [x for x in playerPool if x[0] not in [i[0] for i in cantPlay]]
+        # print "can play ", [i[0] for i in canPlay]
+        if len(playerPool) <= 1:
+            player2 = ['bye', 'bye']
+        else:
+            playerindex = [i[0] for i in playerPool].index(canPlay[0][0])
+            player2 = playerPool[playerindex]
+            playerPool.remove(player2)
+        playerPool.remove(player)
+        tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
     conn.close()
     return tuples
-
 
 
 def clearTournament(tournament):

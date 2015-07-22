@@ -4,6 +4,7 @@
 
 from tournament import *
 
+
 def testDeleteMatches():
     deleteMatches()
     print "1. Old matches can be deleted."
@@ -31,7 +32,7 @@ def testCount():
 def testRegister():
     deleteMatches()
     deletePlayers()
-    registerPlayer("Chandra Nalaar", None)
+    registerPlayer("Chandra Nalaar")
     c = countPlayers()
     if c != 1:
         raise ValueError(
@@ -42,10 +43,10 @@ def testRegister():
 def testRegisterCountDelete():
     deleteMatches()
     deletePlayers()
-    registerPlayer("Markov Chaney", null)
-    registerPlayer("Joe Malik", null)
-    registerPlayer("Mao Tsu-hsi", null)
-    registerPlayer("Atlanta Hope", null)
+    registerPlayer("Markov Chaney")
+    registerPlayer("Joe Malik")
+    registerPlayer("Mao Tsu-hsi")
+    registerPlayer("Atlanta Hope")
     c = countPlayers()
     if c != 4:
         raise ValueError(
@@ -111,8 +112,8 @@ def testPairings():
     registerPlayer("Pinkie Pie")
     standings = playerStandings()
     [id1, id2, id3, id4] = [row[0] for row in standings]
-    reportMatch(id1, id2)
-    reportMatch(id3, id4)
+    reportMatch(id1, id2, 'w')
+    reportMatch(id3, id4, 'w')
     pairings = swissPairings()
     if len(pairings) != 2:
         raise ValueError(

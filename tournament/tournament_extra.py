@@ -11,11 +11,11 @@ contestant = (
     "John",
     "Sue",
     "Tiffany",
-    "Nina"
-    # "Connor",
-    # "Simone",
-    # "Bryon",
-    # "Paul"
+    "Nina",
+    "Connor",
+    "Simone",
+    "Bryon",
+    "Paul"
 )
 findLog = math.log(len(contestant), 2)
 totalRounds = math.ceil(findLog)
@@ -54,13 +54,12 @@ def simtournament(contestants, tournament):
     final = findtournament(tournament)
     print "Final Results"
     for position, standings in enumerate(final):
-        print "%r. %s with a record of %s - %s" % (position + 1,
-                                                     standings[1],
-                                                     standings[2],
-                                                     standings[3] -
-                                                     standings[2],)
-# reportMatch(2, 3, "w")
-# addContestants(contestant, 'test')
-simtournament(contestant, 'se')
+        print "%r. %s with a record of w:%s t:%s l:%s" % (position + 1,
+                                                          standings[1],
+                                                          standings[2],
+                                                          standings[3],
+                                                          standings[4],)
 
-clearTournament('test')
+simtournament(contestant, 'Fake Tournament')
+
+clearTournament('Fake Tournament')
