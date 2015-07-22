@@ -54,7 +54,24 @@ CREATE VIEW games AS (
   ) s GROUP BY id
 );
 
--- Standings of all players in all tournament sorted by points 
+-- View that first gets a table of the opponent wins then that table is
+-- grouped by contectants to get there opponent matches wins(OMW)
+
+CREATE VIEW omw AS (
+  SELECT
+    contestant as id,
+    sum(wins) as wins
+  FROM (
+    SELECT
+      matches.opponent,
+      matches.contestant,
+      games.wins
+    FROM matches LEFT JOIN games
+    ON matches.opponent = games.id
+  ) s GROUP BY contestant
+);
+
+-- Standings of all players in all tournament sorted by points then omw
 
 CREATE VIEW standings AS (
   SELECT
@@ -65,8 +82,10 @@ CREATE VIEW standings AS (
     games.loses,
     games.played,
     games.points,
+    omw.wins as omw,
     players.tournament
   FROM PLAYERS
     INNER JOIN GAMES USING (id)
-  ORDER BY points DESC
+    LEFT JOIN omw using (id)
+  ORDER BY points DESC, omw DESC
 );

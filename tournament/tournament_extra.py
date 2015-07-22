@@ -10,12 +10,12 @@ contestant = (
     "Jeff",
     "John",
     "Sue",
-    "Tiffany",
-    "Nina",
-    "Connor",
-    "Simone",
-    "Bryon",
-    "Paul"
+    "Tiffany"
+    # "Nina",
+    # "Connor",
+    # "Simone",
+    # "Bryon",
+    # "Paul"
 )
 findLog = math.log(len(contestant), 2)
 totalRounds = math.ceil(findLog)
@@ -60,6 +60,6 @@ def simtournament(contestants, tournament):
                                                           standings[3],
                                                           standings[4],)
 
-simtournament(contestant, 'Fake Tournament')
+simtournament(contestant, 'Fake_Tournament')
 
-clearTournament('Fake Tournament')
+# clearTournament('Fake_Tournament')
