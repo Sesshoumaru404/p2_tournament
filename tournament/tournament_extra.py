@@ -10,12 +10,14 @@ contestant = (
     "Jeff",
     "John",
     "Sue",
-    "Tiffany"
-    # "Nina",
-    # "Connor",
-    # "Simone",
-    # "Bryon",
-    # "Paul"
+    "Tiffany",
+    "Nina",
+    "Connor",
+    "Simone",
+    "Bryon",
+    "Paul",
+    "brain",
+    "erica",
 )
 findLog = math.log(len(contestant), 2)
 totalRounds = math.ceil(findLog)
@@ -30,8 +32,9 @@ def addContestants(contestants, tournament):
     for players in contestants:
         registerPlayer(players, tournament)
     playerStandings(tournament)
-    print "Tournament %s with will last %d rounds." % (tournament,
-                                                       totalRounds,)
+    print "Tournament %s with %s players will last %d rounds." % (tournament,
+                                                                  len(contestants),
+                                                                  totalRounds)
 
 
 def simtournament(contestants, tournament):
@@ -43,11 +46,8 @@ def simtournament(contestants, tournament):
     addContestants(contestants, tournament)
     for x in range(0, int(totalRounds)):
         pairings = swissPairings(tournament)
+        shuffle = ['w', 'l', 't']
         for pairs in pairings:
-            if pairs[2] == "bye":
-                reportMatch(pairs[0], pairs[2], 'w')
-                continue
-            shuffle = ['w', 'l', 't']
             random.shuffle(shuffle)
             reportMatch(pairs[0], pairs[2], shuffle[0])
         # players = findtournament(tournament)
@@ -59,7 +59,6 @@ def simtournament(contestants, tournament):
                                                           standings[2],
                                                           standings[3],
                                                           standings[4],)
-
-simtournament(contestant, 'Fake_Tournament')
-
-# clearTournament('Fake_Tournament')
+for x in ["Fake_Tournament" + str(i) for i in range(100)]:
+    simtournament(contestant, x)
+    clearTournament(x)

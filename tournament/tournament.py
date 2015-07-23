@@ -4,7 +4,6 @@
 #
 
 import psycopg2
-import math
 
 
 def connect():
@@ -39,9 +38,7 @@ def countPlayers():
     conn = connect()
     c = conn.cursor()
     c.execute("SELECT * FROM players;")
-    # print c.rowcount
     posts = c.rowcount
-    print 'Total player count %s' % posts
     conn.close()
     return posts
 
@@ -131,6 +128,8 @@ def reportMatch(contestant, opponent, result):
       opponent:  the id number of the player who lost
       result: result of the match
     """
+    if contestant is None:
+        result == 'l'
     if result == 'w':
         contestantPoints = 3
         contestantResult = 'w'
@@ -148,18 +147,19 @@ def reportMatch(contestant, opponent, result):
         opponentPoints = 1
     conn = connect()
     c = conn.cursor()
-    # Set opponent to null value if in bye round
-    if opponent == "bye":
-        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);",\
-                  (contestant, None, result, 3),)
-    else:
-        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);",\
-                  (contestant, opponent, contestantResult, contestantPoints),)
-        c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);",\
-                  (opponent, contestant, opponentResult, opponentPoints),)
+    c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);",\
+              (contestant, opponent, contestantResult, contestantPoints),)
+    c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);",\
+              (opponent, contestant, opponentResult, opponentPoints),)
     conn.commit()
     conn.close()
 
+def checkLastPair(pair, c):
+    pairPlayed = "SELECT * FROM matches where contestant = %s and opponent = %s;" % (pair[0], pair[1],)
+    c.execute(pairPlayed)
+    pairPlayed = c.fetchall()
+    if len(pairPlayed):
+        return True
 
 def swissPairings(tournament=None):
     """
@@ -178,31 +178,38 @@ def swissPairings(tournament=None):
         name2: the second player's name
     """
     if tournament is None:
-        test2 = "SELECT * FROM standings;"
+        test2 = "SELECT * FROM standings ORDER BY points ASC, omw ASC;"
     else:
-        test2 = "SELECT * FROM %s;" % tournament
+        test2 = "SELECT * FROM %s ORDER BY points ASC, omw ASC;" % tournament
     tuples = ()
     conn = connect()
     c = conn.cursor()
     c.execute(test2)
     playerPool = c.fetchall()
-    matches = math.ceil(len(playerPool)/float(2))
+    if len(playerPool) % 2 != 0:
+        playerPool.insert(0, (None, None,))
     while len(playerPool) > 0:
-        # checkbye(playerPool)
         player = playerPool[0]
-        # print [i[0] for i in playerPool]
-        c.execute("SELECT opponent FROM matches where " \
-                  "contestant = %s ;" % player[0])
+        if player[0] == None:
+            findplayed = "SELECT opponent FROM matches where " \
+                      "contestant is null;"
+        else:
+            findplayed = "SELECT opponent FROM matches where " \
+                  "contestant = %s ;" % player[0]
+        c.execute(findplayed)
         cantPlay = c.fetchall()
         cantPlay.append((player[0],))
         canPlay = [x for x in playerPool if x[0] not in [i[0] for i in cantPlay]]
-        # print "can play ", [i[0] for i in canPlay]
-        if len(playerPool) <= 1:
-            player2 = ['bye', 'bye']
-        else:
-            playerindex = [i[0] for i in playerPool].index(canPlay[0][0])
-            player2 = playerPool[playerindex]
-            playerPool.remove(player2)
+        player2 = canPlay[0]
+        if 2 < len(playerPool) <= 4:
+            for index in range(0, len(canPlay)-1):
+                print len(canPlay)
+                lastPair = [x[0] for x in playerPool if x[0] not in [i[0] for i in [player, player2]]]
+                if checkLastPair(lastPair, c):
+                    print index
+                    player2 = canPlay[index]
+                    break
+        playerPool.remove(player2)
         playerPool.remove(player)
         tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
     conn.close()
