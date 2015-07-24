@@ -50,7 +50,6 @@ def simtournament(contestants, tournament):
         for pairs in pairings:
             random.shuffle(shuffle)
             reportMatch(pairs[0], pairs[2], shuffle[0])
-        # players = findtournament(tournament)
     final = findtournament(tournament)
     print "Final Results"
     for position, standings in enumerate(final):
@@ -59,6 +58,6 @@ def simtournament(contestants, tournament):
                                                           standings[2],
                                                           standings[3],
                                                           standings[4],)
-for x in ["Fake_Tournament" + str(i) for i in range(100)]:
+for x in ["Fake_Tournament" + str(i) for i in range(1)]:
     simtournament(contestant, x)
     clearTournament(x)

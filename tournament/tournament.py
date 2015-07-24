@@ -21,7 +21,10 @@ def deleteMatches():
 
 
 def deletePlayers(tournament=None):
-    """Remove all the player records from the database."""
+    """
+    Remove all the player records from the database.
+    And if statement to pass all project tests.
+    """
     if tournament is None:
         erase = "DELETE FROM players;"
     else:
@@ -91,20 +94,19 @@ def playerStandings(tournament=None):
 
 
 def findtournament(tournament):
-    test2 = "SELECT * FROM %s;" % tournament
     conn = connect()
     c = conn.cursor()
-    c.execute(test2)
-    posts = c.fetchall()
+    c.execute("SELECT * FROM %s;"  % tournament)
+    currentTournament = c.fetchall()
     conn.close()
-    return posts
+    return currentTournament
 
 
 def checkrematch(id1, id2):
     """
     Use to check if players have already played if other
     """
-    if id2 == "bye":
+    if id2 == None:
         findMatch = "SELECT * FROM matches where contestant = %s " \
             " and opponent IS NULL;" % (id1,)
     else:
@@ -131,8 +133,8 @@ def reportMatch(contestant, opponent, result):
     if contestant is None:
         result == 'l'
     if result == 'w':
-        contestantPoints = 3
         contestantResult = 'w'
+        contestantPoints = 3
         opponentResult = 'l'
         opponentPoints = 0
     if result == 'l':
@@ -141,10 +143,8 @@ def reportMatch(contestant, opponent, result):
         opponentResult = 'w'
         opponentPoints = 3
     if result == 't':
-        contestantResult = 't'
-        contestantPoints = 1
-        opponentResult = 't'
-        opponentPoints = 1
+        contestantResult = opponentResult = 't'
+        contestantPoints = opponentPoints = 1
     conn = connect()
     c = conn.cursor()
     c.execute("INSERT INTO matches VALUES (%s,%s,%s,%s);",\
@@ -154,12 +154,24 @@ def reportMatch(contestant, opponent, result):
     conn.commit()
     conn.close()
 
-def checkLastPair(pair, c):
-    pairPlayed = "SELECT * FROM matches where contestant = %s and opponent = %s;" % (pair[0], pair[1],)
-    c.execute(pairPlayed)
-    pairPlayed = c.fetchall()
-    if len(pairPlayed):
-        return True
+
+def findplayed(player):
+    if player[0] == None:
+        findplayed = "SELECT opponent FROM matches where " \
+                  "contestant is null;"
+    else:
+        findplayed = "SELECT opponent FROM matches where " \
+              "contestant = %s ;" % player[0]
+    return findplayed
+
+
+def tournamentfind(tournament):
+    if tournament is None:
+        test2 = "SELECT * FROM standings ORDER BY points ASC, omw ASC;"
+    else:
+        test2 = "SELECT * FROM %s ORDER BY points ASC, omw ASC;" % tournament
+    return test2
+
 
 def swissPairings(tournament=None):
     """
@@ -177,38 +189,32 @@ def swissPairings(tournament=None):
         id2: the second player's unique id
         name2: the second player's name
     """
-    if tournament is None:
-        test2 = "SELECT * FROM standings ORDER BY points ASC, omw ASC;"
-    else:
-        test2 = "SELECT * FROM %s ORDER BY points ASC, omw ASC;" % tournament
+    shuffleCount = 0
     tuples = ()
     conn = connect()
     c = conn.cursor()
-    c.execute(test2)
+    c.execute(tournamentfind(tournament))
     playerPool = c.fetchall()
     if len(playerPool) % 2 != 0:
         playerPool.insert(0, (None, None,))
     while len(playerPool) > 0:
         player = playerPool[0]
-        if player[0] == None:
-            findplayed = "SELECT opponent FROM matches where " \
-                      "contestant is null;"
-        else:
-            findplayed = "SELECT opponent FROM matches where " \
-                  "contestant = %s ;" % player[0]
-        c.execute(findplayed)
+        c.execute(findplayed(player))
         cantPlay = c.fetchall()
         cantPlay.append((player[0],))
         canPlay = [x for x in playerPool if x[0] not in [i[0] for i in cantPlay]]
+        if not canPlay:
+            redo = tuples[-1]
+            if shuffleCount > 3:
+                tuples = tuples[:-1]
+                redo = redo + tuples[-1]
+            while redo:
+                playerPool.append(redo[0:2])
+                redo = redo[2:]
+            tuples = tuples[:-1]
+            shuffleCount +=1
+            continue
         player2 = canPlay[0]
-        if 2 < len(playerPool) <= 4:
-            for index in range(0, len(canPlay)-1):
-                print len(canPlay)
-                lastPair = [x[0] for x in playerPool if x[0] not in [i[0] for i in [player, player2]]]
-                if checkLastPair(lastPair, c):
-                    print index
-                    player2 = canPlay[index]
-                    break
         playerPool.remove(player2)
         playerPool.remove(player)
         tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
