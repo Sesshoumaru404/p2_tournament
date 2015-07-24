@@ -28,10 +28,24 @@ def deletePlayers(tournament=None):
     if tournament is None:
         erase = "DELETE FROM players;"
     else:
-        erase = "DELETE FROM players WHERE tournament = %s;", (tournament,)
+        erase = "DELETE FROM players CASCADE WHERE tournament = '%s';"\
+         % tournament
     conn = connect()
     c = conn.cursor()
     c.execute(erase)
+    conn.commit()
+    conn.close()
+
+
+def deleteTournament(tournament):
+    """
+    Remove a tournament and all the player records from the database.
+    """
+    delTournament = "DROP VIEW IF EXISTS %s CASCADE;" % tournament
+    conn = connect()
+    c = conn.cursor()
+    c.execute(delTournament)
+    deletePlayers(tournament)
     conn.commit()
     conn.close()
 
@@ -102,24 +116,6 @@ def findtournament(tournament):
     return currentTournament
 
 
-def checkrematch(id1, id2):
-    """
-    Use to check if players have already played if other
-    """
-    if id2 == None:
-        findMatch = "SELECT * FROM matches where contestant = %s " \
-            " and opponent IS NULL;" % (id1,)
-    else:
-        findMatch = "SELECT * FROM matches where contestant = %s " \
-            " and opponent = %s;" % (id1, id2,)
-    conn = connect()
-    c = conn.cursor()
-    c.execute(findMatch)
-    match = c.fetchall()
-    conn.close()
-    return len(match) == 1
-
-
 def reportMatch(contestant, opponent, result):
     """
     Records the outcome of a single match between two players.
@@ -133,15 +129,11 @@ def reportMatch(contestant, opponent, result):
     if contestant is None:
         result == 'l'
     if result == 'w':
-        contestantResult = 'w'
-        contestantPoints = 3
-        opponentResult = 'l'
-        opponentPoints = 0
+        contestantResult, contestantPoints = 'w', 3
+        opponentResult, opponentPoints = 'l', 0
     if result == 'l':
-        contestantResult = 'l'
-        contestantPoints = 0
-        opponentResult = 'w'
-        opponentPoints = 3
+        contestantResult, contestantPoints = 'l', 0
+        opponentResult, opponentPoints = 'w', 3
     if result == 't':
         contestantResult = opponentResult = 't'
         contestantPoints = opponentPoints = 1
@@ -156,9 +148,11 @@ def reportMatch(contestant, opponent, result):
 
 
 def findplayed(player):
+    """
+    Used make seach wording for finding players depeding case.
+    """
     if player[0] == None:
-        findplayed = "SELECT opponent FROM matches where " \
-                  "contestant is null;"
+        findplayed = "SELECT opponent FROM matches where contestant is null;"
     else:
         findplayed = "SELECT opponent FROM matches where " \
               "contestant = %s ;" % player[0]
@@ -166,21 +160,25 @@ def findplayed(player):
 
 
 def tournamentfind(tournament):
+    """
+    Used make seach wording for getting a tournament depeding case.
+    Returns players in lowerest to highest order, because bye matches are
+    paired first and lower ranked players should play byes first.
+    """
     if tournament is None:
-        test2 = "SELECT * FROM standings ORDER BY points ASC, omw ASC;"
+        tourFind = "SELECT * FROM standings ORDER BY points ASC, omw ASC;"
     else:
-        test2 = "SELECT * FROM %s ORDER BY points ASC, omw ASC;" % tournament
-    return test2
+        tourFind = "SELECT * FROM %s ORDER BY points ASC, omw ASC;" % tournament
+    return tourFind
 
 
 def swissPairings(tournament=None):
     """
     Returns a list of pairs of players for the next round of a match.
 
-    Assuming that there are an even number of players registered, each player
-    appears exactly once in the pairings.  Each player is paired with another
-    player with an equal or nearly-equal win record, that is, a player adjacent
-    to him or her in the standings.
+    Each player appears exactly once in the pairings.  Each player is paired
+    with another player with an equal or nearly-equal win record, that is, a
+    player adjacent to him or her in the standings.
 
     Returns:
       A list of tuples, each of which contains (id1, name1, id2, name2)
@@ -190,11 +188,12 @@ def swissPairings(tournament=None):
         name2: the second player's name
     """
     shuffleCount = 0
-    tuples = ()
+    pairings = ()
     conn = connect()
     c = conn.cursor()
     c.execute(tournamentfind(tournament))
     playerPool = c.fetchall()
+    # Add fake player if odd players
     if len(playerPool) % 2 != 0:
         playerPool.insert(0, (None, None,))
     while len(playerPool) > 0:
@@ -204,34 +203,19 @@ def swissPairings(tournament=None):
         cantPlay.append((player[0],))
         canPlay = [x for x in playerPool if x[0] not in [i[0] for i in cantPlay]]
         if not canPlay:
-            redo = tuples[-1]
+            redoPair = pairings[-1]
             if shuffleCount > 3:
-                tuples = tuples[:-1]
-                redo = redo + tuples[-1]
-            while redo:
-                playerPool.append(redo[0:2])
-                redo = redo[2:]
-            tuples = tuples[:-1]
+                pairings = pairings[:-1]
+                redoPair = redoPair + pairings[-1]
+            while redoPair:
+                playerPool.append(redoPair[0:2])
+                redoPair = redoPair[2:]
+            pairings = pairings[:-1]
             shuffleCount +=1
             continue
         player2 = canPlay[0]
         playerPool.remove(player2)
         playerPool.remove(player)
-        tuples = tuples + ((player[0], player[1], player2[0], player2[1],),)
+        pairings = pairings + ((player[0], player[1], player2[0], player2[1],),)
     conn.close()
-    return tuples
-
-
-def clearTournament(tournament):
-    """
-    Use to remove a tournament  and player in that specfic tournament
-    from database
-    """
-    delTournament = "DROP VIEW IF EXISTS %s CASCADE;" % tournament
-    delP = "DELETE FROM players CASCADE WHERE tournament = '%s';" % tournament
-    conn = connect()
-    c = conn.cursor()
-    c.execute(delTournament)
-    c.execute(delP)
-    conn.commit()
-    conn.close()
+    return pairings
