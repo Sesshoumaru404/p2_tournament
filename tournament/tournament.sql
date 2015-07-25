@@ -8,6 +8,8 @@
 
 -- use "\i tournament.sql" in psql terminal to read file
 
+DROP DATABASE IF EXISTS p2_tournament;
+
 CREATE DATABASE p2_tournament;
 
 \c p2_tournament;
@@ -17,7 +19,7 @@ DROP TABLE IF EXISTS matches CASCADE;
 
 -- Create table for players includes name and tournament name
 
-CREATE TABLE PLAYERS (
+CREATE TABLE players (
     name text NOT NULL,
     tournament text,
     id serial PRIMARY KEY
@@ -25,9 +27,9 @@ CREATE TABLE PLAYERS (
 
 
 -- Create a Matches table to track games played includes
--- contestant their opponent and the result of match and points earns
+-- contestant their opponent and the result of match and points per match
 
-CREATE TABLE MATCHES (
+CREATE TABLE matches (
     contestant integer REFERENCES players (id) ON DELETE CASCADE,
     opponent integer REFERENCES players (id) ON DELETE CASCADE,
     result text CHECK (result IN ('w', 'l', 't')),
@@ -38,7 +40,7 @@ CREATE TABLE MATCHES (
 
 -- Games table find having it seperate is easier to read
 
-CREATE VIEW GAMES AS (
+CREATE VIEW games AS (
   SELECT id,
     count(case when results = 'w' then 1 end) as wins,
     count(case when results = 't' then 1 end) as ties,
@@ -58,7 +60,7 @@ CREATE VIEW GAMES AS (
 -- View that first gets a table of opponent wins, then that table is
 -- grouped by contestants to get there opponent matches wins(OMW)
 
-CREATE VIEW OMW AS (
+CREATE VIEW omw AS (
   SELECT
     contestant as id,
     sum(wins) as wins
@@ -67,7 +69,7 @@ CREATE VIEW OMW AS (
       matches.opponent,
       matches.contestant,
       games.wins
-    FROM MATCHES LEFT JOIN GAMES
+    FROM matches LEFT JOIN games
     ON matches.opponent = games.id
   ) s GROUP BY contestant
 );
@@ -85,8 +87,8 @@ CREATE VIEW standings AS (
     games.points,
     omw.wins as omw,
     players.tournament
-  FROM PLAYERS
-    INNER JOIN GAMES USING (id)
-    LEFT JOIN OMW using (id)
+  FROM players
+    INNER JOIN games USING (id)
+    LEFT JOIN omw using (id)
   ORDER BY points DESC, omw DESC
 );

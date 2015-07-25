@@ -6,19 +6,24 @@
 import psycopg2
 
 
-def connect():
+def connect(database_name="p2_tournament"):
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=p2_tournament")
+    try:
+        db = psycopg2.connect("dbname={}".format(database_name))
+        cursor = db.cursor()
+        return db, cursor
+    except:
+        print("<error message>")
 
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    conn = connect()
-    c = conn.cursor()
-    c.execute("DELETE FROM matches;")
-    conn.commit()
-    conn.close()
+    db, cursor = connect()
 
+    query = "DELETE FROM matches;"
+    cursor.execute(query)
+
+    db.close()
 
 def deletePlayers(tournament=None):
     """
@@ -26,15 +31,18 @@ def deletePlayers(tournament=None):
     And if statement to pass all project tests.
     """
     if tournament is None:
-        erase = "DELETE FROM players;"
+        query = "DELETE FROM players;"
+        parameter = None
     else:
-        erase = "DELETE FROM players CASCADE WHERE tournament = '%s';"\
-         % tournament
-    conn = connect()
-    c = conn.cursor()
-    c.execute(erase)
-    conn.commit()
-    conn.close()
+        query = "DELETE FROM players CASCADE WHERE tournament = '%s';"
+        parameter = tournament
+
+    db, cursor = connect()
+
+    cursor.execute(query, parameter)
+
+    db.commit()
+    db.close()
 
 
 def deleteTournament(tournament):
@@ -52,12 +60,12 @@ def deleteTournament(tournament):
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    conn = connect()
-    c = conn.cursor()
-    c.execute("SELECT * FROM players;")
-    playerList = c.rowcount
-    conn.close()
-    return playerList
+    db, cursor = connect()
+
+    query = "SELECT * FROM players;"
+    cursor.execute(query)
+
+    db.close()
 
 
 def registerPlayer(name, tournament=None):
@@ -69,10 +77,11 @@ def registerPlayer(name, tournament=None):
     Args:
       name: the player's full name (need not be unique).
     """
-    conn = connect()
-    c = conn.cursor()
-    c.execute("INSERT INTO players (name, tournament) VALUES (%s, %s)",
-              (name, tournament,))
+    db, cursor = connect()
+    query = "INSERT INTO players (name, tournament) VALUES (%s, %s)",
+    parameter = (name, tournament,)
+
+    cursor.execute(query, parameter)
     conn.commit()
     conn.close()
 
