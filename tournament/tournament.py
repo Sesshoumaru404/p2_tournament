@@ -55,9 +55,9 @@ def countPlayers():
     conn = connect()
     c = conn.cursor()
     c.execute("SELECT * FROM players;")
-    posts = c.rowcount
+    playerList = c.rowcount
     conn.close()
-    return posts
+    return playerList
 
 
 def registerPlayer(name, tournament=None):
@@ -108,9 +108,16 @@ def playerStandings(tournament=None):
 
 
 def findtournament(tournament):
+    '''
+    Finds the current standings of for the named tournament.
+
+    Args:
+      Tournament: The tournament name which is a none required argument.
+      Should be a single string, two word example
+    '''
     conn = connect()
     c = conn.cursor()
-    c.execute("SELECT * FROM %s;"  % tournament)
+    c.execute("SELECT * FROM %s;" % tournament)
     currentTournament = c.fetchall()
     conn.close()
     return currentTournament
@@ -166,10 +173,10 @@ def tournamentfind(tournament):
     paired first and lower ranked players should play byes first.
     """
     if tournament is None:
-        tourFind = "SELECT * FROM standings ORDER BY points ASC, omw ASC;"
+        findT = "SELECT * FROM standings ORDER BY points ASC, omw ASC;"
     else:
-        tourFind = "SELECT * FROM %s ORDER BY points ASC, omw ASC;" % tournament
-    return tourFind
+        findT = "SELECT * FROM %s ORDER BY points ASC, omw ASC;" % tournament
+    return findT
 
 
 def swissPairings(tournament=None):
@@ -201,7 +208,8 @@ def swissPairings(tournament=None):
         c.execute(findplayed(player))
         cantPlay = c.fetchall()
         cantPlay.append((player[0],))
-        canPlay = [x for x in playerPool if x[0] not in [i[0] for i in cantPlay]]
+        canPlay = [x for x in playerPool if x[0] not in
+                   [i[0] for i in cantPlay]]
         if not canPlay:
             redoPair = pairings[-1]
             if shuffleCount > 3:
@@ -211,11 +219,12 @@ def swissPairings(tournament=None):
                 playerPool.append(redoPair[0:2])
                 redoPair = redoPair[2:]
             pairings = pairings[:-1]
-            shuffleCount +=1
+            shuffleCount += 1
             continue
         player2 = canPlay[0]
         playerPool.remove(player2)
         playerPool.remove(player)
-        pairings = pairings + ((player[0], player[1], player2[0], player2[1],),)
+        pairings = pairings + ((player[0], player[1], player2[0],
+                                player2[1],),)
     conn.close()
     return pairings

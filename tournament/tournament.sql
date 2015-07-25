@@ -17,8 +17,8 @@ DROP TABLE IF EXISTS matches CASCADE;
 
 -- Create table for players includes name and tournament name
 
-CREATE TABLE players (
-    name text,
+CREATE TABLE PLAYERS (
+    name text NOT NULL,
     tournament text,
     id serial PRIMARY KEY
 );
@@ -27,17 +27,18 @@ CREATE TABLE players (
 -- Create a Matches table to track games played includes
 -- contestant their opponent and the result of match and points earns
 
-CREATE TABLE matches (
+CREATE TABLE MATCHES (
     contestant integer REFERENCES players (id) ON DELETE CASCADE,
     opponent integer REFERENCES players (id) ON DELETE CASCADE,
-    result text,
+    result text CHECK (result IN ('w', 'l', 't')),
     points integer DEFAULT 0,
-    match_id serial PRIMARY KEY
+    match_id serial PRIMARY KEY,
+		UNIQUE (contestant, opponent)
 );
 
 -- Games table find having it seperate is easier to read
 
-CREATE VIEW games AS (
+CREATE VIEW GAMES AS (
   SELECT id,
     count(case when results = 'w' then 1 end) as wins,
     count(case when results = 't' then 1 end) as ties,
@@ -54,10 +55,10 @@ CREATE VIEW games AS (
   ) s GROUP BY id
 );
 
--- View that first gets a table of the opponent wins then that table is
--- grouped by contectants to get there opponent matches wins(OMW)
+-- View that first gets a table of opponent wins, then that table is
+-- grouped by contestants to get there opponent matches wins(OMW)
 
-CREATE VIEW omw AS (
+CREATE VIEW OMW AS (
   SELECT
     contestant as id,
     sum(wins) as wins
@@ -66,7 +67,7 @@ CREATE VIEW omw AS (
       matches.opponent,
       matches.contestant,
       games.wins
-    FROM matches LEFT JOIN games
+    FROM MATCHES LEFT JOIN GAMES
     ON matches.opponent = games.id
   ) s GROUP BY contestant
 );
@@ -86,6 +87,6 @@ CREATE VIEW standings AS (
     players.tournament
   FROM PLAYERS
     INNER JOIN GAMES USING (id)
-    LEFT JOIN omw using (id)
+    LEFT JOIN OMW using (id)
   ORDER BY points DESC, omw DESC
 );

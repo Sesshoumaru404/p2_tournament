@@ -10,15 +10,15 @@ from tournament import *
 contestant = (
     "Superman",
     "Batman",
-    "Wonder_Woman",
+    "Wonder Woman",
     "Flash",
-    "Green_Lantern",
+    "Green Lantern",
     "Aquaman",
     "Atom",
     "Cycborg",
-    "Shazman",
+    "Shazman"
 )
-
+# Find how many ounds a tournament will last
 findLog = math.log(len(contestant), 2)
 
 totalRounds = math.ceil(findLog)
@@ -33,14 +33,14 @@ def addContestants(contestants, tournament):
     for players in contestants:
         registerPlayer(players, tournament)
     playerStandings(tournament)
-    print "Tournament %s with %s players will last %d rounds." % \
+    print "Tournament %s with %s players will lasted %d rounds." % \
         (tournament, len(contestants), totalRounds)
 
 
 def simtournament(contestants, tournament):
     '''
     This function is use to simulate a swiss pairing tournament.
-    Take two arguements contestants which is a list of players and
+    Take two arguments contestants which is a list of players and
     tournament which is the name of the tournament
 
     Returns: Tournament results listing first to last place
@@ -55,13 +55,16 @@ def simtournament(contestants, tournament):
     final = findtournament(tournament)
     print "Final Results"
     for position, standings in enumerate(final):
-        print "%r. %s with a record of w:%s t:%s l:%s" % (position + 1,
-                                                          standings[1],
-                                                          standings[2],
-                                                          standings[3],
-                                                          standings[4],)
+        print "%r. %s with %s pionts and record of %s - %s - %s omw %s" % \
+         (position + 1, standings[1], standings[6], standings[2],
+          standings[3], standings[4], standings[7],)
 
-
-for tournament in ["Fake_Tournament" + str(i) for i in range(1)]:
+'''
+Will simulate a tournament, change range number to change tournaments
+simulated.
+Will you wish to delete tournament after they are complete uncomment
+deleteTournament().
+'''
+for tournament in ["Fake_Tournament_" + str(i) for i in range(1)]:
     simtournament(contestant, tournament)
-    deleteTournament(tournament)
+    # deleteTournament(tournament)
